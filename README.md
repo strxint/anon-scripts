@@ -1,7 +1,4 @@
-# Lazy Anonymous tools for Linux, v4.0.0 #
-####################################################################
-# Copyright (c) 2026 archnon@protonmail.com. All Rights Reserved.  #
-####################################################################
+#[ Lazy Anonymous tools for Linux, v4.0.0 ]#
 
 info = { 
    "dev": "archnon@protonmail.com",
