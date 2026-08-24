@@ -1,5 +1,5 @@
 
-# ***Lazy-Anon***
+# ***Lazy-Anon v4.0.0***
 
 **-> Make Linux Truly anonymous with some user-friendly scripts <-**
 
