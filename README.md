@@ -71,4 +71,4 @@ Run any script as root
  - [netfilter/iptables project](https://www.nftables.org/)
  - [curl](https://curl.se/)
 
-![Logo](https://github.com/strxint/lazy-anon/main/logo.png)
+![Logo](https://github.com/strxint/lazy-anon/blob/main/logo.png)
