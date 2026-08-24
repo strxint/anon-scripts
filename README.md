@@ -19,21 +19,21 @@
 - Support for custom Torrc: anonman.sh
 ## ***Authors***
 
-- [@sleuth3301](https://www.github.com/sleuth3301) (archnon@protonmail.com)
+- [@strxint](https://www.github.com/strxint) (archnon@protonmail.com)
 
 
 ## ***Extra***
 
 - Firewall is root only, same with services.
 - Scripts will not support s6 for boot services.
-- Get my personal stuff like .zshrc, .shrc, here: https://github.com/sleuth3301/lazy-config
+- Get my personal stuff like .zshrc, .shrc, here: https://github.com/strxint/lazy-config
 
 ## ***Installation***
 
 Clone repo
 
 ```bash
-  git clone https://github.com/sleuth3301/lazy-anon
+  git clone https://github.com/strxint/lazy-anon
 ```
 
 Get inside folder
