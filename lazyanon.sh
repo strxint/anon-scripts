@@ -287,7 +287,7 @@ start() {
 
   sudo nft flush ruleset >/dev/null 2>&1
 
-  cat <<EOT >$FWFILE
+  cat << 'EOT' > $FWFILE
 table ip6 filter {
         chain INPUT {
                 type filter hook input priority filter; policy drop;
@@ -428,7 +428,7 @@ config() {
 
     # default template #
 
-    cat <<EOT >$TORRC
+cat << 'EOT' >$TORRC
 # lazy man.. #
 # File locked by chattr +i, unlock: sudo chattr -i $TORRC
 
