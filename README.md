@@ -9,14 +9,14 @@
 - Anonymous Protocols: Tor, i2pd.
 - Secured configuration files: torrc, lazy_rules.nft.
 - Modern firewall: nftables.
-- MAC and interfaces script: lazymac.
+- MAC and interfaces script: lazymac.sh
 - Boot services for: systemd, runit, open-rc.
 - User friendly scripts.
 - Easy to mount and use.
 - 100% bash code.
 - Dependencies handled by: apt, pacman, dnf, yum, apk, zypper, emerge, xbps-install.
-- Anonymous DNS script: anondns.
-- Support for custom Torrc: anonman.
+- Anonymous DNS script: anondns.sh
+- Support for custom Torrc: anonman.sh
 ## ***Authors***
 
 - [@sleuth3301](https://www.github.com/sleuth3301) (archnon@protonmail.com)
