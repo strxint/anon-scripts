@@ -19,7 +19,7 @@
 - Support for custom Torrc: anonman.
 ## ***Authors***
 
-- [@sleuth3301](https://www.github.com/sleuth3301)
+- [@sleuth3301](https://www.github.com/sleuth3301) (archnon@protonmail.com)
 
 
 ## ***Extra***
