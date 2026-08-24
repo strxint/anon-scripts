@@ -156,33 +156,31 @@ while [ $# -gt 0 ]; do
     touch $TORRC >/dev/null 2>&1
 
     rtorc() {
-
-      cat <<EOT >$TORRC
-	# <--- By anonman for Torrc ---> #
-	# File locked by chattr +i, unlock: sudo chattr -i $TORRC
+cat << 'EOT' > $TORRC
+# <--- By anonman for Torrc ---> #
+# File locked by chattr +i, unlock: sudo chattr -i $TORRC
 		
-	CookieAuthentication 0
-	VirtualAddrNetworkIPv4 10.192.0.0/10
-	AutomapHostsOnResolve 1
-	AutomapHostsSuffixes .exit,.onion
-	TransPort $ADDR:$TRANS IsolateClientAddr IsolateSOCKSAuth IsolateClientProtocol IsolateDestPort IsolateDestAddr
-	DNSPort $ADDR:$DNS IsolateClientAddr IsolateSOCKSAuth IsolateClientProtocol IsolateDestPort IsolateDestAddr
-	SocksPort $ADDR:$SOCKS IsolateClientAddr IsolateSOCKSAuth IsolateClientProtocol IsolateDestPort IsolateDestAddr
-	ControlPort $ADDR:$CONTROL
-	HTTPTunnelPort $ADDR:$HTTP
-	EntryNodes {is},{ch},{fi},{ro}
-	ExitNodes {is},{ch},{fi},{ro}
-	StrictNodes 1
-	MaxCircuitDirtiness 10
-	ClientUseIPv6 0
-	ClientPreferIPv6ORPORT 0
-	ClientRejectInternalAddresses 1
-	AvoidDiskWrites 1
-	EnforceDistinctSubnets 1
-	HardwareAccel 1
+CookieAuthentication 0
+VirtualAddrNetworkIPv4 10.192.0.0/10
+AutomapHostsOnResolve 1
+AutomapHostsSuffixes .exit,.onion
+TransPort $ADDR:$TRANS IsolateClientAddr IsolateSOCKSAuth IsolateClientProtocol IsolateDestPort IsolateDestAddr
+DNSPort $ADDR:$DNS IsolateClientAddr IsolateSOCKSAuth IsolateClientProtocol IsolateDestPort IsolateDestAddr
+SocksPort $ADDR:$SOCKS IsolateClientAddr IsolateSOCKSAuth IsolateClientProtocol IsolateDestPort IsolateDestAddr
+ControlPort $ADDR:$CONTROL
+HTTPTunnelPort $ADDR:$HTTP
+EntryNodes {is},{ch},{fi},{ro}
+ExitNodes {is},{ch},{fi},{ro}
+StrictNodes 1
+MaxCircuitDirtiness 10
+ClientUseIPv6 0
+ClientPreferIPv6ORPORT 0
+ClientRejectInternalAddresses 1
+AvoidDiskWrites 1
+EnforceDistinctSubnets 1
+HardwareAccel 1
 EOT
-
-    }
+}
 
     rtorc && echo -e "\n${BLUE}[${LB}OKAY${BLUE}]${P} Done, restart Tor to apply${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Could not reset: ${ORANGE}$TORRC${NC}"
     exit 0
