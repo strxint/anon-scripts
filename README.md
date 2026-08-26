@@ -1,5 +1,5 @@
 
-# ***Lazy-Anon v4.0.0***
+# ***Anon-scripts v4.0.0***
 
 **-> Make Linux Truly anonymous with some user-friendly scripts <-**
 
@@ -7,16 +7,17 @@
 ## ***Features***
 
 - Anonymous Protocols: Tor, i2pd.
-- Secured configuration files: torrc, lazy_rules.nft.
+- Secured configuration files: torrc, jupiter.nft.
 - Modern firewall: nftables.
-- MAC and interfaces script: lazymac.sh
+- MAC and interfaces script: saturn.
 - Boot services for: systemd, runit, open-rc.
 - User friendly scripts.
 - Easy to mount and use.
 - 100% bash code.
 - Dependencies handled by: apt, pacman, dnf, yum, apk, zypper, emerge, xbps-install.
-- Anonymous DNS script: anondns.sh
-- Support for custom Torrc: anonman.sh
+- Anonymous DNS script: neptune.
+- Support for custom Torrc: uranus.
+
 ## ***Authors***
 
 - [@strxint](https://www.github.com/strxint) (archnon@protonmail.com)
@@ -26,32 +27,32 @@
 
 - Firewall is root only, same with services.
 - Scripts will not support s6 for boot services.
-- Get my personal stuff like .zshrc, .shrc, here: https://github.com/strxint/lazy-config
+- Get my personal stuff like .zshrc, .shrc, here: https://github.com/strxint/anon-config
 
 ## ***Installation***
 
 Clone repo
 
 ```bash
-  git clone https://github.com/strxint/lazy-anon
+  git clone https://github.com/strxint/anon-scripts
 ```
 
 Get inside folder
 
 ```bash
-  cd lazy-anon
+  cd anon-scripts
 ```
 
 Ensure root and exec permissions
 
 ```bash
-  sudo chmod +x *
+  sudo chmod +x * || doas chmod +x *
 ```
 
 Run any script as root
 
 ```bash
-  sudo ./lazyanon.sh
+  sudo ./jupiter || doas ./jupiter
 ```
 
 
@@ -71,4 +72,4 @@ Run any script as root
  - [netfilter/iptables project](https://www.nftables.org/)
  - [curl](https://curl.se/)
 
-![Logo](https://github.com/strxint/lazy-anon/blob/main/logo.png)
+![Logo](https://github.com/strxint/anon-scripts/blob/main/logo.png)
