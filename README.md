@@ -57,8 +57,10 @@ Run any script as root
 
 
 ## ***Screenshots & Demo***
-**(I will add it later)**
-![App Screenshot](https://dummyimage.com/468x300?text=App+Screenshot+Here)
+
+![App Screenshot](https://github.com/strxint/anon-scripts/blob/Screenshots/jupiter.png)
+![App Screenshot](https://github.com/strxint/anon-scripts/blob/Screenshots/jupiter2.png)
+
 ## ***License***
 [![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)](https://opensource.org/licenses/) 
 * [GPL-3.0](https://choosealicense.com/licenses/gpl-3.0/)
