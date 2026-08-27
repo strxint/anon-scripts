@@ -58,6 +58,8 @@ Run any script as root
 
 ## ***Screenshots & Demo***
 
+![App Screenshot](https://github.com/strxint/anon-scripts/blob/Screenshots/jupiter3.png)
+![App Screenshot](https://github.com/strxint/anon-scripts/blob/Screenshots/jupiter4.png)
 ![App Screenshot](https://github.com/strxint/anon-scripts/blob/Screenshots/jupiter.png)
 ![App Screenshot](https://github.com/strxint/anon-scripts/blob/Screenshots/jupiter2.png)
 
