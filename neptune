@@ -45,42 +45,42 @@ need=e2fsprogs
 
 if ! command -v chattr >/dev/null 2>&1; then
   if [[ $(command -v apt) ]]; then
-    if ! apt install -y $logos; then
+    if ! apt install -y $need; then
       echo -e "\n${RED}[${WHITE}X${RED}] Could not install: ${ORANGE}$need${NC}"
       exit 1
     fi
   elif [[ $(command -v pacman) ]]; then
-    if ! pacman -Sy --noconfirm --needed --overwrite "*" $logos; then
+    if ! pacman -Sy --noconfirm --needed --overwrite "*" $need; then
       echo -e "\n${RED}[${WHITE}X${RED}] Could not install: ${ORANGE}$need${NC}"
       exit 1
     fi
   elif [[ $(command -v dnf) ]]; then
-    if ! dnf install -y --allowerasing $logos; then
+    if ! dnf install -y --allowerasing $need; then
       echo -e "\n${RED}[${WHITE}X${RED}] Could not install: ${ORANGE}$need${NC}"
       exit 1
     fi
   elif [[ $(command -v yum) ]]; then
-    if ! yum install -y $logos; then
+    if ! yum install -y $need; then
       echo -e "\n${RED}[${WHITE}X${RED}] Could not install: ${ORANGE}$need${NC}"
       exit 1
     fi
   elif [[ $(command -v xbps-install) ]]; then
-    if ! xbps-install -Sy -f -y "*" $logos; then
+    if ! xbps-install -Sy -f -y "*" $need; then
       echo -e "\n${RED}[${WHITE}X${RED}] Could not install: ${ORANGE}$need${NC}"
       exit 1
     fi
   elif [[ $(command -v zypper) ]]; then
-    if ! zypper install $logos; then
+    if ! zypper install $need; then
       echo -e "\n${RED}[${WHITE}X${RED}] Could not install: ${ORANGE}$need${NC}"
       exit 1
     fi
   elif [[ $(command -v apk) ]]; then
-    if ! apk add --no-cache $logos; then
+    if ! apk add --no-cache $need; then
       echo -e "\n${RED}[${WHITE}X${RED}] Could not install: ${ORANGE}$need${NC}"
       exit 1
     fi
   elif [[ $(command -v emerge) ]]; then
-    if ! emerge -v --oneshot --keep-going $logos; then
+    if ! emerge -v --oneshot --keep-going $need; then
       echo -e "\n${RED}[${WHITE}X${RED}] Could not install: ${ORANGE}$need${NC}"
       exit 1
     fi
