@@ -75,5 +75,3 @@ Run any script as root
  - [Bash - GNU Project](https://www.gnu.org/software/bash/)
  - [netfilter/iptables project](https://www.nftables.org/)
  - [curl](https://curl.se/)
-
-![Logo](https://github.com/strxint/anon-scripts/blob/main/logo.png)
