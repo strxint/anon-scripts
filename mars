@@ -1,0 +1,29 @@
+#!/bin/bash
+
+dev=$1
+sec=$2
+
+if !(command -v macchanger >/dev/null 2>&1); then
+  echo -e "\n[x] Install macchanger first"
+  exit 1
+fi
+
+if [ $EUID -ne 0 ]; then
+  echo -e "\n[x] Run as root"
+  exit 1
+fi
+
+if [[ -z "$dev" || -z "$sec" ]]; then
+  echo -e "\nusage: mars <dev> <sec>"
+  exit 1
+fi
+
+if ! macchanger -s $dev >/dev/null 2>&1; then
+  echo -e "\n[x] No such device: $dev"
+  exit 1
+fi
+
+while true; do
+  macchanger -r $dev
+  sleep $sec
+done >/dev/null 2>&1 &

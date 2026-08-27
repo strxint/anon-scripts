@@ -1,0 +1,916 @@
+#!/bin/bash
+
+##################################################################################################################################
+# Jupiter - bash based privacy tool.                                                                                            #
+# Based in: bash.                                                                                                                #
+# Requires: netcat-openbsd curl tor nftables procps networkmanager iproute2 coreutils util-linux bash e2fsprogs i2pd             #
+# Version: 4.0.0                                                                                                                 #
+# Dev: archnon@protonmail.com                                                                                                    #
+##################################################################################################################################
+####################################################################
+# Copyright (c) 2026 archnon@protonmail.com. All Rights Reserved.  #
+####################################################################
+
+# <-- colors -->
+
+RED="\e[91m"
+
+GREEN="\e[92m"
+
+BLUE="\e[94m"
+
+P="\e[95m"
+
+YELLOW="\e[93m"
+
+ORANGE="\e[38;5;214m"
+
+LB="\e[96m"
+
+WHITE="\e[97m"
+
+NC="\e[0m"
+
+# <-- Dependencies --> #
+# Always dynamic #
+
+if ! (command -v nc >/dev/null 2>&1 && command -v curl >/dev/null 2>&1 && command -v tor >/dev/null 2>&1 && command -v bash >/dev/null 2>&1 && command -v pkill >/dev/null 2>&1 && command -v NetworkManager >/dev/null 2>&1 && command -v nft >/dev/null 2>&1 && command -v chattr >/dev/null 2>&1 && command -v i2pd >/dev/null 2>&1); then
+
+  if [[ $(command -v apt) ]]; then
+
+    pkgs=(netcat-openbsd tor curl nftables procps network-manager iproute2 coreutils util-linux bash e2fsprogs i2pd)
+
+    if ! apt install "${pkgs[@]}" -y; then
+      echo -e "${RED}[${WHITE}X${RED}] Install: ${ORANGE}${pkgs[@]}${NC}"
+      exit 1
+    fi
+    wait
+
+  elif [[ $(command -v pacman) ]]; then
+
+    pkgs=(openbsd-netcat curl tor nftables procps-ng networkmanager iproute2 coreutils util-linux bash e2fsprogs i2pd)
+
+    if ! pacman -Syy "${pkgs[@]}" --needed --noconfirm --overwrite "*"; then
+      echo -e "${RED}[${WHITE}X${RED}] Install: ${ORANGE}${pkgs[@]}${NC}"
+      exit 1
+    fi
+    wait
+
+  elif [[ $(command -v dnf) ]]; then
+
+    pkgs=(epel-release nmap-ncat curl tor nftables procps-ng NetworkManager iproute coreutils util-linux bash e2fsprogs i2pd)
+
+    if ! dnf -y install --allowerasing "${pkgs[@]}"; then
+      echo -e "${RED}[${WHITE}X${RED}] Install: ${ORANGE}${pkgs[@]}${NC}"
+      exit 1
+    fi
+    wait
+
+  elif [[ $(command -v yum) ]]; then
+
+    pkgs=(nmap-ncat curl tor nftables procps-ng NetworkManager iproute coreutils util-linux bash e2fsprogs i2pd)
+
+    if ! yum -y install "${pkgs[@]}"; then
+      echo -e "${RED}[${WHITE}X${RED}] Install: ${ORANGE}${pkgs[@]}${NC}"
+      exit 1
+    fi
+    wait
+
+  elif [[ $(command -v zypper) ]]; then
+
+    pkgs=(nmap-ncat curl tor nftables procps-ng NetworkManager iproute coreutils util-linux bash e2fsprogs i2pd)
+
+    if ! zypper install "${pkgs[@]}"; then
+      echo -e "${RED}[${WHITE}X${RED}] Install: ${ORANGE}${pkgs[@]}${NC}"
+      exit 1
+    fi
+    wait
+
+  elif [[ $(command -v apk) ]]; then
+
+    pkgs=(netcat-openbsd curl tor nftables procps networkmanager iproute2 coreutils util-linux bash e2fsprogs i2pd)
+
+    if ! apk add --no-cache "${pkgs[@]}"; then
+      echo -e "${RED}[${WHITE}X${RED}] Install: ${ORANGE}${pkgs[@]}${NC}"
+      exit 1
+    fi
+    wait
+
+  elif [[ $(command -v xbps-install) ]]; then
+
+    pkgs=(openbsd-netcat curl tor iproute2 coreutils util-linux bash nftables procps-ng NetworkManager e2fsprogs i2pd)
+
+    if ! xbps-install -Sy -f -y "*" "${pkgs[@]}"; then
+      echo -e "${RED}[${WHITE}X${RED}] Install: ${ORANGE}${pkgs[@]}${NC}"
+      exit 1
+    fi
+    wait
+
+  elif [[ $(command -v emerge) ]]; then
+
+    pkgs=(netcat-openbsd tor curl nftables procps network-manager iproute2 coreutils util-linux bash e2fsprogs i2pd)
+
+    if ! emerge -v --oneshot --keep-going ${pkgs[@]}; then
+      echo -e "${RED}[${WHITE}X${RED}] Install: ${ORANGE}${pkgs[@]}${NC}"
+      exit 1
+    fi
+    wait
+  else
+    pkgs=(netcat-openbsd tor curl nftables procps network-manager iproute2 coreutils util-linux bash e2fsprogs i2pd)
+
+    echo -e "${RED}[${WHITE}X${RED}] Install: ${ORANGE}${pkgs[@]}${NC}"
+    exit 1
+  fi
+fi
+
+# <-- Banner --> #                                         
+
+echo -e "${ORANGE}                                       ";
+echo -e "${ORANGE}                                       ";
+echo -e "${ORANGE}  ▄▄ ▄▄ ▄▄ ▄▄▄▄  ▄▄ ▄▄▄▄▄▄ ▄▄▄▄▄ ▄▄▄▄  ";
+echo -e "${ORANGE}  ██ ██ ██ ██▄█▀ ██   ██   ██▄▄  ██▄█▄ ";
+echo -e "${ORANGE}▄▄█▀ ▀███▀ ██    ██   ██   ██▄▄▄ ██ ██ ";
+echo -e "${ORANGE}                                       ";
+
+echo -e "\e[95m ╔══════════════════════════════════╗
+ ║\e[97m  Portable Bash Anonymous Tool :) \e[95m║
+ ╚══════════════════════════════════╝\e[0m"
+
+echo -e "\e[97m ~ ᴅᴇᴠᴇʟᴏᴘᴇᴅ ʙʏ: \e[95m@strxint\e[0m"
+
+# Service Managers && Boot Automation
+
+createsv() {
+
+##### For systemd #####
+
+if [ ! -f /etc/systemd/system/jupiter.service ] && command -v systemctl >/dev/null 2>&1; then
+  touch /etc/systemd/system/jupiter.service >/dev/null 2>&1
+  cat << EOT >/etc/systemd/system/jupiter.service
+[Unit]
+Description=Jupiter Anonymous service
+
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/jupiter start
+RemainAfterExit=yes
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOT
+
+fi
+
+##### For runit ######
+
+if [ ! -f /etc/sv/jupiter/run ] && command -v runit >/dev/null 2>&1; then
+  mkdir -p /etc/sv/jupiter/ >/dev/null 2>&1
+  touch /etc/sv/jupiter/run >/dev/null 2>&1
+  cat <<EOT >/etc/sv/jupiter/run
+#!/bin/sh
+exec jupiter start
+EOT
+  chmod +x /etc/sv/jupiter/run >/dev/null 2>&1
+fi
+
+#### For open-rc #####
+
+if [ ! -f /etc/init.d/jupiter ] && command -v rc-service >/dev/null 2>&1; then
+  touch /etc/init.d/jupiter >/dev/null 2>&1
+  cat << EOT >/etc/init.d/jupiter
+#!/sbin/openrc-run
+name=jupiter
+command="jupiter"
+command_args="start"
+command_background=true
+pidfile="/run/${RC_SVCNAME}.pid"
+depend() {
+   need net
+}
+EOT
+  chmod +x /etc/init.d/jupiter >/dev/null 2>&1
+fi
+
+}
+
+##################### variables #########################
+# <- Trusted Section ->
+# Default: 9.9.9.9 (quad9), Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36
+
+TRUSTED=9.9.9.9
+user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36'
+
+# <-- Address To Bind -->
+# Default: 127.0.0.1(loopback/lo/localhost) #
+# There's no place like 127.0.0.1.. #
+
+IFNAME=lo
+ADDR=127.0.0.1
+
+# <-- Tor Ports --> #
+# Tor is not an http proxy btw #
+# Default order: 6969, 5353, 9150, 9151, 8181 #
+
+TRANS=6969
+TDNS=5353
+SOCKS=9150
+CONTROL=9151
+HTTP=8181
+
+# <-- I2pd Ports --> #
+# Default Order: I2PSOCKS=4447, I2PHTTP=4444
+
+I2PSOCKS=4447
+I2PHTTP=4444
+
+# <-- Configuration Files --> #
+# Always nftables instead of old iptables #
+# Default order: /etc/tor/torrc, /etc/jupiter.nft, /etc/resolv.conf#
+
+TORRC=/etc/tor/torrc
+FWFILE=/etc/jupiter.nft
+DNSFILE=/etc/resolv.conf
+
+# <-- Script Functions --> #
+# Here logic becomes crazy #
+
+# Torrc Check ->
+torrc() {
+  if ! $(tor --verify-config >/dev/null 2>&1); then
+    echo -e "\n${RED}[${WHITE}X${RED}] Invalid Torrc${NC}"
+    exit 1
+  fi
+}
+# <--
+
+# Help page -->
+help_p() {
+  echo -e "\n${RED}[${YELLOW}warn${RED}]${ORANGE} usage: ${LB}jupiter ${YELLOW}<${GREEN}COMMAND${YELLOW}> <${LB}OPTIONS${YELLOW}>${NC}"
+
+  echo -e "\n${BLUE}[${ORANGE}1${BLUE}] ${LB}start: ${WHITE}Start script${NC}"
+  echo -e "\n${BLUE}[${ORANGE}2${BLUE}] ${LB}stop: ${WHITE}Stop script${NC}"
+  echo -e "\n${BLUE}[${ORANGE}3${BLUE}] ${LB}restart: ${WHITE}Restart script${NC}"
+  echo -e "\n${BLUE}[${ORANGE}4${BLUE}] ${LB}enable: ${WHITE}Enable script on boot${NC}"
+  echo -e "\n${BLUE}[${ORANGE}5${BLUE}] ${LB}disable: ${WHITE}Disable script on boot${NC}"
+  echo -e "\n${BLUE}[${ORANGE}6${BLUE}] ${LB}myip: ${WHITE}Print your IP${NC}"
+  echo -e "\n${BLUE}[${ORANGE}7${BLUE}] ${LB}changeid: ${WHITE}Get a new IP${NC}"
+  echo -e "\n${BLUE}[${ORANGE}8${BLUE}] ${LB}status: ${WHITE}Check Tor or i2p status${NC}"
+  echo -e "\n${BLUE}[${ORANGE}9${BLUE}] ${LB}help: ${WHITE}Print manual${NC}"
+  exit 1
+}
+# <--
+
+# Check IP -->
+myip() {
+
+  # There are many ways to check IP, first we have the full API	
+
+  # Default API: 'ip-api.com?fields=query,asname,org,country,region,continent,proxy,mobile,status'
+  # <- I recommend to get clear info ->
+
+  #check_api='ifconfig.co/json'
+
+  #! curl $check_api -w "\n" -s -m 5 --user-agent "$user_agent" && echo -e "\n${RED}[${WHITE}X${RED}]${WHITE} Timeout for IP${NC}"
+
+  # OR the minimal, which only fetch the IP
+  # Default API: ifconfig.co
+
+  check_ip=ifconfig.co/ip
+
+  if pgrep -x tor >/dev/null 2>&1; then
+
+	  if ! curl -m 5 ifconfig.co >/dev/null 2>&1; then
+		  echo -e "\n${RED}[${WHITE}X${RED}] Check IP Error${NC}"
+		  exit 1
+	  else
+		  echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Your Tor IP:${GREEN} $(curl -s -w "\n" -m 5 --user-agent "$user_agent" --socks5-hostname $ADDR:$SOCKS $check_ip)${NC}"
+	  fi
+
+  else
+	  if ! curl -m 5 ifconfig.co >/dev/null 2>&1; then
+		  echo -e "\n${RED}[${WHITE}X${RED}] Check IP Error${NC}"
+		  exit 1
+	  else
+		  echo -e "\n${RED}[${WHITE}OK${RED}] Your IP: ${GREEN}$(curl -s -w "\n" -m 5 --user-agent "$user_agent" $check_ip)${NC}"
+	  fi
+  fi
+}
+# <--
+
+start() {
+
+  # Goodbye SELinux ! #
+
+  setenforce 0 >/dev/null 2>&1
+  semanage permissive -a unconfined_t >/dev/null 2>&1
+
+  # Ensuring Kernel modules before launching nft commands #
+
+  modprobe nft_nat >/dev/null 2>&1
+  modprobe nft_chain_nat >/dev/null 2>&1
+  modprobe nf_nat >/dev/null 2>&1
+
+  # Force firewall rules here #
+
+  chattr -i $FWFILE >/dev/null 2>&1
+
+  rm $FWFILE >/dev/null 2>&1
+  touch $FWFILE >/dev/null 2>&1
+
+  nft flush ruleset >/dev/null 2>&1
+
+  cat <<EOT >$FWFILE
+table ip6 filter {
+        chain INPUT {
+                type filter hook input priority filter; policy drop;
+                meta l4proto ipv6-icmp icmpv6 type echo-request counter packets 0 bytes 0 drop
+        }
+
+        chain FORWARD {
+                type filter hook forward priority filter; policy drop;
+        }
+
+        chain OUTPUT {
+                type filter hook output priority filter; policy drop;
+        }
+}
+table ip filter {
+        chain INPUT {
+                type filter hook input priority filter; policy drop;
+                iifname "$IFNAME" counter packets 0 bytes 0 accept
+                ct state related,established counter packets 0 bytes 0 accept
+                iifname "$IFNAME" ip protocol icmp icmp type echo-request ct state related,established counter packets 0 bytes 0 accept
+                ip protocol icmp icmp type echo-request counter packets 0 bytes 0 drop
+        }
+
+        chain OUTPUT {
+                type filter hook output priority filter; policy drop;
+                oifname "$IFNAME" counter packets 0 bytes 0 accept
+                ct state new,related,established counter packets 0 bytes 0 accept
+                oifname "$IFNAME" ip protocol icmp icmp type echo-request ct state new,related,established counter packets 0 bytes 0 accept
+                ip protocol icmp icmp type echo-request counter packets 0 bytes 0 drop
+                skuid $TOR_USER counter packets 0 bytes 0 accept
+                ip daddr $ADDR udp dport $TDNS counter packets 0 bytes 0 accept
+                ip daddr $ADDR tcp dport $TRANS counter packets 0 bytes 0 accept
+                ip daddr $ADDR tcp dport $SOCKS counter packets 0 bytes 0 accept
+                ip daddr $ADDR tcp dport $HTTP counter packets 0 bytes 0 accept
+		ip daddr $ADDR tcp dport $I2PHTTP counter packets 0 bytes 0 accept
+		ip daddr $ADDR tcp dport $I2PSOCKS counter packets 0 bytes 0 accept
+                counter packets 0 bytes 0 reject
+        }
+
+        chain FORWARD {
+                type filter hook forward priority filter; policy drop;
+        }
+}
+table ip nat {
+        chain OUTPUT {
+                type nat hook output priority dstnat; policy accept;
+                ip daddr $ADDR udp dport 53 counter packets 0 bytes 0 redirect to :$TDNS
+                ip daddr $ADDR tcp dport 53 counter packets 0 bytes 0 redirect to :$TDNS
+                skuid $TOR_USER counter packets 0 bytes 0 return
+                ip daddr 127.0.0.0/8 counter packets 0 bytes 0 return
+                ip daddr 192.168.0.0/16 counter packets 0 bytes 0 return
+                ip daddr 10.0.0.0/8 counter packets 0 bytes 0 return
+                ip daddr 172.16.0.0/12 counter packets 100 bytes 100 return
+                ip daddr 169.254.0.0/16 counter packets 0 bytes 0 return
+                ip daddr 255.255.255.255 counter packets 0 bytes 0 return
+                ip daddr 224.0.0.0/4 counter packets 0 bytes 0 return
+		            udp dport 53 counter packets 0 bytes 0 redirect to :$TDNS
+                tcp dport 53 counter packets 0 bytes 0 redirect to :$TDNS
+                tcp flags & (fin | syn | rst | ack) == syn counter packets 0 bytes 0 redirect to :$TRANS
+                }
+}
+EOT
+
+  chattr +i $FWFILE >/dev/null 2>&1
+
+  nft -f $FWFILE >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Firewall${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Firewall${NC}"
+
+  sleep 1
+
+  # Say goodbye to old PIDs and welcome to securest transparent proxy experience (i love my localhost) #
+
+  pkill -9 tor >/dev/null 2>&1
+  pkill -9 NetworkManager >/dev/null 2>&1
+
+  chattr -i $DNSFILE >/dev/null 2>&1
+
+  rm $DNSFILE >/dev/null 2>&1
+  touch $DNSFILE >/dev/null 2>&1
+
+  echo -e "nameserver $ADDR" | tee $DNSFILE >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} DNS Fix${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] DNS Fix${NC}"
+
+  sleep 1
+
+  chmod 644 $DNSFILE >/dev/null 2>&1
+  chattr +i $DNSFILE >/dev/null 2>&1
+
+  while ! pgrep -x NetworkManager >/dev/null 2>&1; do
+    NetworkManager >/dev/null 2>&1 && break || continue
+  done && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Network Fix${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Network Fix${NC}"
+
+  sleep 1
+
+  tor --User $TOR_USER --RunAsDaemon 1 --DataDirectory /var/lib/tor -f $TORRC >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Tor Daemon${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Tor Daemon${NC}"
+  i2pd --daemon >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} I2P Daemon${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] I2P Daemon${NC}"
+
+  sleep 1
+
+  sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
+  sysctl -w net.ipv4.icmp_echo_ignore_all=1 >/dev/null 2>&1
+  sysctl -w net.ipv6.icmp.echo_ignore_all=1 >/dev/null 2>&1
+  sysctl -w net.ipv6.conf.lo.disable_ipv6=1 >/dev/null 2>&1
+  sysctl --system >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Disable IPv6${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Disable IPv6${NC}"
+
+  sleep 1
+
+  # Proxy PID simple check to confirm everything works #
+
+  if pgrep -x tor >/dev/null 2>&1 && pgrep -a i2pd >/dev/null 2>&1; then
+
+    sleep 1
+
+    echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Tor and i2pd running, all done${NC}"
+
+  else
+    sleep 1
+
+    echo -e "${RED}[${WHITE}X${RED}] Tor and i2pd not running, try again${NC}"
+    exit 1
+  fi
+}
+
+# Apply Default Torrc if user have not used anonman to apply a custom one #
+
+config() {
+
+  # here the check #
+
+  if ! cat $TORRC | grep -IE "NOT TOUCH, THIS FILE IS CUSTOM LOAD" >/dev/null 2>&1; then
+
+    chattr -i $TORRC >/dev/null 2>&1
+
+    rm $TORRC >/dev/null 2>&1
+    touch $TORRC >/dev/null 2>&1
+
+    # default template #
+
+    cat <<EOT >$TORRC
+# Jupiter's Default Template for Torrc #
+# File locked by chattr +i, unlock: chattr -i $TORRC
+
+CookieAuthentication 0
+VirtualAddrNetworkIPv4 10.192.0.0/10
+AutomapHostsOnResolve 1
+AutomapHostsSuffixes .exit,.onion
+TransPort $ADDR:$TRANS IsolateClientAddr IsolateSOCKSAuth IsolateClientProtocol IsolateDestPort IsolateDestAddr
+DNSPort $ADDR:$TDNS IsolateClientAddr IsolateSOCKSAuth IsolateClientProtocol IsolateDestPort IsolateDestAddr
+SocksPort $ADDR:$SOCKS IsolateClientAddr IsolateSOCKSAuth IsolateClientProtocol IsolateDestPort IsolateDestAddr
+ControlPort $ADDR:$CONTROL
+HTTPTunnelPort $ADDR:$HTTP
+EntryNodes {is},{ch},{fi},{ro}
+ExitNodes {is},{ch},{fi},{ro}
+StrictNodes 1
+MaxCircuitDirtiness 10
+ClientUseIPv6 0
+ClientPreferIPv6ORPORT 0
+ClientRejectInternalAddresses 1
+AvoidDiskWrites 1
+EnforceDistinctSubnets 1
+HardwareAccel 1
+
+EOT
+
+    chattr +i $TORRC >/dev/null 2>&1
+
+  fi
+
+  # Tor user detection(for firewall rules) #
+
+  if id debian-tor >/dev/null 2>&1; then
+    export TOR_USER="debian-tor"
+    echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} System Tor user: ${GREEN}$TOR_USER${NC}"
+
+  elif id tor >/dev/null 2>&1; then
+    export TOR_USER="tor"
+    echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} System Tor user: ${GREEN}$TOR_USER${NC}"
+
+  elif id toranon >/dev/null 2>&1; then
+    export TOR_USER="toranon"
+    echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} System Tor user: ${GREEN}$TOR_USER${NC}"
+
+  else
+    echo -e "\n${RED}[${WHITE}X${RED}] No system Tor user?${NC}"
+    read -e -p $'\n\e[91m[\e[93mwarn\e[91m]\e[97m Oops!, enter a system user then: \e[92m' TOR_USER $TOR_USER
+
+    if id $TOR_USER >/dev/null 2>&1; then
+      export TOR_USER=$TOR_USER
+      echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} alr, new owner of torrc: ${GREEN}$TOR_USER${NC}"
+
+    else
+      echo -e "\n${RED}[${WHITE}X${RED}] Invalid user ${ORANGE}'$TOR_USER'${NC}"
+      exit 1
+
+    fi
+
+  fi
+
+  chown -R $TOR_USER:$TOR_USER $TORRC >/dev/null 2>&1
+  chown -R $TOR_USER:$TOR_USER /var/lib/tor >/dev/null 2>&1
+  chmod 700 /var/lib/tor >/dev/null 2>&1
+
+  sleep 1
+
+  start
+}
+
+stop() {
+
+  if ! pgrep -a i2pd >/dev/null 2>&1 && ! pgrep -x tor >/dev/null 2>&1; then
+    echo -e "\n${RED}[${WHITE}X${RED}] Tor and i2pd not running${NC}"
+    exit 1
+  fi
+
+  # Everything starts being normal from here #
+
+  pkill -9 tor >/dev/null 2>&1
+  pkill -9 i2pd >/dev/null 2>&1
+  pkill -9 NetworkManager >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Stop Tor, i2pd and Network${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Stop Tor, i2pd or Network${NC}"
+
+  sleep 1
+
+  chattr -i $DNSFILE >/dev/null 2>&1
+  rm $DNSFILE >/dev/null 2>&1
+  touch $DNSFILE >/dev/null 2>&1
+
+  echo nameserver $TRUSTED | tee $DNSFILE >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} DNS Fix${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] DNS Fix${NC}"
+
+  sleep 1
+
+  chattr +i $DNSFILE >/dev/null 2>&1
+
+  while ! pgrep -x NetworkManager >/dev/null 2>&1; do
+
+    NetworkManager >/dev/null 2>&1 && continue || break
+
+  done && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Network Fix${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Network Fix${NC}"
+  
+  sleep 1
+
+  sysctl -w net.ipv6.conf.all.disable_ipv6=0 >/dev/null 2>&1 
+  sysctl -w net.ipv4.icmp_echo_ignore_all=0 >/dev/null 2>&1
+  sysctl -w net.ipv6.icmp.echo_ignore_all=0 >/dev/null 2>&1
+  sysctl -w net.ipv6.conf.lo.disable_ipv6=0 >/dev/null 2>&1
+  sysctl --system >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} IPv6 Fix${NC}" || echo -e "\n${RED}[${WHITE}X${RED}]${P} IPv6 Fix${NC}"
+
+  sleep 1
+
+  nft flush ruleset >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Firewall Fix${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Firewall Fix${NC}"
+
+  sleep 1
+
+  if ! pgrep -x tor >/dev/null 2>&1 || ! pgrep -a i2pd >/dev/null 2>&1; then
+
+    echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Tor and i2pd not running, all done${NC}"
+    exit 0
+
+  else
+
+    echo -e "\n${RED}[${WHITE}X${RED}] Tor and i2pd still running, try again${NC}"
+    exit 1
+
+  fi
+
+}
+
+# <-- Function Calls (arguments) --> #
+
+while [ $# -gt 0 ]; do
+  case $1 in
+  start)
+    mode=1
+
+    if [ $EUID -ne 0 ]; then
+      echo -e "\n${RED}[${WHITE}X${RED}] Run as root${NC}"
+      exit 1
+    fi
+
+    torrc
+
+    if ! pgrep -x tor >/dev/null 2>&1 || ! pgrep -a i2pd >/dev/null 2>&1; then
+      echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} getting Tor and i2pd..${NC}"
+      config
+      exit 0
+    else
+      echo -e "\n${RED}[${YELLOW}warn${RED}]${P} Tor or i2pd is running${NC}"
+      exit 1
+    fi
+
+    shift
+    break
+
+    ;;
+
+  stop)
+    mode=2
+
+    if [ $EUID -ne 0 ]; then
+      echo -e "\n${RED}[${WHITE}X${RED}] Run as root${NC}"
+      exit 1
+    fi
+
+    stop
+
+    shift
+    break
+
+    ;;
+
+  myip)
+
+    mode=3
+
+    myip
+
+    shift
+    break
+
+    ;;
+
+  changeid)
+
+    mode=4
+
+    if pgrep -x tor >/dev/null 2>&1; then
+
+      if echo -e "AUTHENTICATE \"\"\nSIGNAL NEWNYM\nQUIT" | nc $ADDR $CONTROL >/dev/null 2>&1; then
+        echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} New IP done${NC}"
+      else
+        echo -e "\n${RED}[${WHITE}X${RED}] cant request New IP${NC}"
+      fi
+
+    else
+
+      echo -e "\n${RED}[${WHITE}X${RED}] Tor is not even running${NC}" # i miss you archnon
+      exit 1
+
+    fi
+
+    shift
+    break
+
+    ;;
+
+  enable)
+
+    mode=5
+
+    if [ "$EUID" -ne 0 ]; then
+      echo -e "\n${RED}[${WHITE}X${RED}] Run as root${NC}"
+      exit 1
+    fi
+
+    ### Check for a valid torrc first ###
+    torrc
+
+    ### Create service files ###
+    createsv
+
+    ### Exceptions ###
+
+    if ! (command -v systemd >/dev/null 2>&1 || command -v runit >/dev/null 2>&1 || command -v rc-service >/dev/null 2>&1); then
+      echo -e "\n${RED}[${WHITE}X${RED}] No suported service manager on this system${NC}"
+      echo -e "\n${RED}[${YELLOW}warn${RED}] This script only runs on: ${ORANGE}systemd, runit, open-rc${NC}"
+      exit 1
+    fi
+
+    ### For systemd ###
+
+    if [ -f /etc/systemd/system/jupiter.service ] && command -v systemctl >/dev/null 2>&1; then
+
+      echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Service Manager: ${GREEN}systemd${NC}"
+
+      if systemctl is-enabled jupiter >/dev/null 2>&1; then
+        echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Program runs on boot${NC}"
+        exit 1
+      else
+        systemctl enable jupiter >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Program will run on boot${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Program wont run on boot due to an unexcepted error${NC}"
+      fi
+
+    fi
+
+    ### For runit ###
+
+    if [ -f /etc/sv/jupiter/run ] && command -v runit >/dev/null 2>&1; then
+
+      echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Service Manager: ${GREEN}runit${NC}"
+
+      if [ -d /run/runit/service ]; then
+        export RSDIR=/run/runit/service
+
+      elif [ -d /etc/service ]; then
+        export RSDIR=/etc/service
+
+      elif [ -d /var/run/service ]; then
+        export RSDIR=/var/run/servie
+
+      fi
+
+      if ls -l $RSDIR/jupiter/ >/dev/null 2>&1; then
+
+        echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Program runs on boot${NC}"
+        exit 0
+
+      else
+
+        ln -s /etc/sv/jupiter $RSDIR >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Program will run on boot${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Program wont run on boot, due to an unexcepted error${NC}"
+
+      fi
+
+    fi
+
+    ### For open-rc ###
+
+    if [ -f /etc/init.d/jupiter ] && command -v rc-update >/dev/null 2>&1; then
+
+      echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Service Manager: ${GREEN}open-rc${NC}"
+
+      if rc-update | grep -IE "jupiter" >/dev/null 2>&1; then
+        echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Program runs on boot btw${NC}"
+        exit 0
+      else
+        rc-update add jupiter default >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Program will run on boot${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Program wont run on boot due to an unexcepted error${NC}"
+      fi
+
+    fi
+
+    shift
+    break
+
+    ;;
+
+  disable)
+
+    # You cannot run this as an standard user #
+
+    mode=6
+
+    if [ "$EUID" -ne 0 ]; then
+      echo -e "\n${RED}[${WHITE}X${RED}] Run as root${NC}"
+      exit 1
+    fi
+
+    ### Check for a valid torrc first ###
+    torrc
+
+    ### Create service files ###
+    createsv
+
+    ### For systemd ###
+
+    if [ -f /etc/systemd/system/jupiter.service ] && command -v systemctl >/dev/null 2>&1; then
+
+      echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Service Manager: ${GREEN}systemd${NC}"
+
+      if ! systemctl is-enabled jupiter >/dev/null 2>&1; then
+        echo -e "\n${RED}[${WHITE}X${RED}] Program wont run on boot${NC}"
+        exit 1
+      else
+        systemctl disable jupiter >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Program wont run on boot${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Program can still run on boot, try again${NC}"
+      fi
+
+    fi
+
+    ### For runit ###
+
+    if [ -f /etc/sv/jupiter/run ] && command -v runit >/dev/null 2>&1; then
+
+      if [ -d /run/runit/service ]; then
+        RSDIR=/run/runit/service
+
+      elif [ -d /etc/service ]; then
+        RSDIR=/etc/service
+
+      elif [ -d /var/run/service ]; then
+        RSDIR=/var/run/service
+      fi
+
+      if ! ls -l $RSDIR/jupiter/ >/dev/null 2>&1; then
+        echo -e "\n${RED}[${WHITE}X${RED}] Program wont run on boot${NC}"
+        exit 1
+      else
+        rm -rf $RSDIR/jupiter >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Program wont run on boot${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Program can still run on boot due to an unexcepted error${NC}"
+      fi
+
+    fi
+
+    ### For open-rc ###
+
+    if [ -f /etc/init.d/jupiter ] && command -v rc-service >/dev/null 2>&1; then
+
+      if ! rc-update | grep -IE "jupiter" >/dev/null 2>&1; then
+        echo -e "\n${RED}[${WHITE}X${RED}] Program wont run on boot${NC}"
+        exit 1
+      else
+        rc-update del jupiter default >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Program wont run on boot ${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Program can still run on boot due to an unexcepted error${NC}"
+      fi
+
+    fi
+
+    shift
+    break
+
+    ;;
+
+  restart)
+
+    # You cannot run this as an standard user #
+
+    mode=7
+
+    if [ $EUID -ne 0 ]; then
+      echo -e "\n${RED}[${WHITE}X${RED}] Run as root${NC}"
+      exit 1
+    fi
+
+    torrc
+
+    echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} getting Tor and i2pd again..${NC}"
+
+    pkill -9 tor >/dev/null 2>&1
+    pkill -9 i2pd >/dev/null 2>&1
+    pkill -9 NetworkManager >/dev/null 2>&1
+
+    config
+
+    shift
+    break
+
+    ;;
+   
+    status)
+    mode=8
+    
+    sleep 1
+
+    if pgrep -x tor >/dev/null 2>&1; then
+	    echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Tor: ${GREEN}active${NC}"
+	    echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Service Ports: "
+	    echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} SocksPort: ${WHITE}$ADDR${GREEN}:${WHITE}$SOCKS${NC}"
+	    echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} TransPort: ${WHITE}$ADDR${GREEN}:${WHITE}$TRANS${NC}"
+            echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} ControlPort: ${WHITE}$ADDR${GREEN}:${WHITE}$CONTROL${NC}" 
+            echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} DNSPort: ${WHITE}$ADDR${GREEN}:${WHITE}$TDNS${NC}"
+	    echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} HTTPTunnelPort: ${WHITE}$ADDR${GREEN}:${WHITE}$HTTP${NC}" 
+
+    else
+	    echo -e "\n${RED}[${WHITE}OK${RED}]${P} Tor: ${RED}deactive${NC}"
+    fi
+
+    echo -ne "\n"
+    sleep 1
+
+    if pgrep -a i2pd >/dev/null 2>&1; then
+	 echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} i2pd: ${GREEN}active${NC}"
+	 echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Service Ports: ${NC}"
+	 echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} Socks Proxy: ${WHITE}$ADDR${GREEN}:${WHITE}$I2PSOCKS${NC}"
+	 echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} Http Proxy: ${WHITE}$ADDR${GREEN}:${WHITE}$I2PHTTP${NC}"
+    else
+         echo -e "\n${RED}[${WHITE}OK${RED}]${P} i2pd: ${RED}deactive${NC}"
+    fi
+    
+    shift
+    break
+    
+    ;;
+
+    help)
+    mode=9
+
+    help_p
+
+    shift
+    break
+
+    ;;
+
+  --* | -* | *)
+    mode=10
+
+    echo -e "\n${RED}[${WHITE}X${RED}] Not a valid option: ${YELLOW}'$1'${RED}, try ${LB}'jupiter help'${NC}"
+
+    exit 1
+
+    shift
+    break
+
+    ;;
+
+  esac
+done
+
+# Help page if ! mode = true
+if [[ -z "$mode" ]]; then
+  help_p
+fi
