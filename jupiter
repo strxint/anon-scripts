@@ -680,7 +680,7 @@ while [ $# -gt 0 ]; do
 
     ### Exceptions ###
 
-    if ! (command -v systemd >/dev/null 2>&1 || command -v runit >/dev/null 2>&1 || command -v rc-service >/dev/null 2>&1); then
+    if ! (command -v systemctl >/dev/null 2>&1 || command -v runit >/dev/null 2>&1 || command -v rc-service >/dev/null 2>&1); then
       echo -e "\n${RED}[${WHITE}X${RED}] No suported service manager on this system${NC}"
       echo -e "\n${RED}[${YELLOW}warn${RED}] This script only runs on: ${ORANGE}systemd, runit, open-rc${NC}"
       exit 1
