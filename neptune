@@ -147,6 +147,7 @@ while [ $# -gt 0 ]; do
     -s)
     mode=3
     addr=$2
+    DEMO="curl_out"
 
     if ! [ -f /etc/resolv.conf ]; then
       touch /etc/resolv.conf >/dev/null 2>&1
@@ -163,7 +164,71 @@ while [ $# -gt 0 ]; do
       touch /etc/resolv.conf >/dev/null 2>&1
 
       echo "nameserver $addr" | tee /etc/resolv.conf >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} New dns address: ${GREEN}$addr${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Could not set dns address${NC}"
-      exit 0
+
+      read -e -p "\033[97mDo you want to test the addr (y/n)?\033[0m  " r "$r"
+
+      if [ -z "$r" ]; then
+          exit 0
+      elif [ "$r" == "N|n" ]]; then
+            exit 0
+      elif [ "$r" == "Y|y" ]; then
+            echo -e "\n${BLUE}[${WHITE}*${BLUE}]${WHITE} Looking for web portals..${NC}"
+
+            sleep 1
+
+            curl "$addr" | tee "$DEMO" >/dev/null 2>&1 && echo -e "\n${GREEN}[*] Discovered http/s web portal, check output: ${ORANGE}'$DEMO'${NC}" || echo -e "\n${RED}[x] Failed to check for http/s servers, check output: ${ORANGE}'$DEMO'${NC}"
+      fi
+
+            read -e -p "\033[97mShow curl output (y/n)?\033[0m  " r "$r"
+
+            echo -e "\n"
+            
+            if [ "$r" == "y|Y" ]; then
+                cat "$DEMO"
+                echo -e "\n"
+            fi
+
+            sleep 1
+
+            read -e -p "\033[97mMake a ping test (y/n)?\033[0m  " r "$r"
+
+            [[ -z "$r" || "$r" == "N|n" ]] && exit 1
+
+            sleep 1
+
+            echo -e "\n${BLUE}[${WHITE}*${BLUE}]${WHITE} ICMP Test (ping)${NC}"
+
+            read -e -p "\033[97mIPv4 or IPv6 (4/6/both)?\033[0m  " r "$r"
+
+            read -e -p "\033[97mHow many packets to send, default: 5, (n/empty)\033[0m  " count "$count"
+
+            [[ -z "$count" ]] && count=5
+
+                  icmpv4(){
+                  for c in "$count"; do
+                      ping -4 -c 1 "$addr" >/dev/null 2>&1 && echo -e "\n${BLUE}[${WHITE}*${BLUE}]${YELLOW} Echo4 reply: "$c"${NC}" || echo -e "\n${RED}[*] Lost reply4: ${ORANGE}$c${NC}"
+                  done
+                  }
+
+                  icmpv6(){
+                  for c in "$count"; do
+                      ping -4 -c 1 "$addr" >/dev/null 2>&1 && echo -e "\n${BLUE}[${WHITE}*${BLUE}]${YELLOW} Echo6 reply: "$c"${NC}" || echo -e "\n${RED}[*] Lost reply6: ${ORANGE}$c${NC}"
+                  done
+                  }
+
+            elif [ "$r" == "4" ]; then
+                  icmpv4
+            elif [ "$r" == "6" ]; then
+                  icmpv6
+            elif [ "$r" == "both" ]; then
+                  echo -e "\n${BLUE}[${WHITE}*${BLUE}]${WHITE} Perform ICMPv4${NC}"
+                  icmpv4
+
+                  sleep 1
+
+                  echo -e "\n${BLUE}[${WHITE}*${BLUE}]${WHITE} Perform ICMPv6${NC}"
+                  icmpv6
+            fi
 
     fi
 
