@@ -355,8 +355,8 @@ table ip filter {
                 ip daddr $ADDR tcp dport $TRANS counter packets 0 bytes 0 accept
                 ip daddr $ADDR tcp dport $SOCKS counter packets 0 bytes 0 accept
                 ip daddr $ADDR tcp dport $HTTP counter packets 0 bytes 0 accept
-		ip daddr $ADDR tcp dport $I2PHTTP counter packets 0 bytes 0 accept
-		ip daddr $ADDR tcp dport $I2PSOCKS counter packets 0 bytes 0 accept
+		        ip daddr $ADDR tcp dport $I2PHTTP counter packets 0 bytes 0 accept
+		        ip daddr $ADDR tcp dport $I2PSOCKS counter packets 0 bytes 0 accept
                 counter packets 0 bytes 0 reject
         }
 
@@ -377,7 +377,7 @@ table ip nat {
                 ip daddr 169.254.0.0/16 counter packets 0 bytes 0 return
                 ip daddr 255.255.255.255 counter packets 0 bytes 0 return
                 ip daddr 224.0.0.0/4 counter packets 0 bytes 0 return
-		            udp dport 53 counter packets 0 bytes 0 redirect to :$TDNS
+		        udp dport 53 counter packets 0 bytes 0 redirect to :$TDNS
                 tcp dport 53 counter packets 0 bytes 0 redirect to :$TDNS
                 tcp flags & (fin | syn | rst | ack) == syn counter packets 0 bytes 0 redirect to :$TRANS
                 }
@@ -414,6 +414,9 @@ EOT
   sleep 1
 
   tor --User $TOR_USER --RunAsDaemon 1 --DataDirectory /var/lib/tor -f $TORRC >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Tor Daemon${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] Tor Daemon${NC}"
+
+  sleep 1
+
   i2pd --daemon >/dev/null 2>&1 && echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} I2P Daemon${NC}" || echo -e "\n${RED}[${WHITE}X${RED}] I2P Daemon${NC}"
 
   sleep 1
@@ -437,7 +440,7 @@ EOT
   else
     sleep 1
 
-    echo -e "${RED}[${WHITE}X${RED}] Tor and i2pd not running, try again${NC}"
+    echo -e "\n${RED}[${WHITE}X${RED}] Tor and i2pd not running, try again${NC}"
     exit 1
   fi
 }
@@ -860,8 +863,8 @@ while [ $# -gt 0 ]; do
 	    echo -e "\n${BLUE}[${LB}OK${BLUE}]${P} Service Ports: "
 	    echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} SocksPort: ${WHITE}$ADDR${GREEN}:${WHITE}$SOCKS${NC}"
 	    echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} TransPort: ${WHITE}$ADDR${GREEN}:${WHITE}$TRANS${NC}"
-            echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} ControlPort: ${WHITE}$ADDR${GREEN}:${WHITE}$CONTROL${NC}" 
-            echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} DNSPort: ${WHITE}$ADDR${GREEN}:${WHITE}$TDNS${NC}"
+        echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} ControlPort: ${WHITE}$ADDR${GREEN}:${WHITE}$CONTROL${NC}" 
+        echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} DNSPort: ${WHITE}$ADDR${GREEN}:${WHITE}$TDNS${NC}"
 	    echo -e "\n${BLUE}[${LB}OK${BLUE}]${ORANGE} HTTPTunnelPort: ${WHITE}$ADDR${GREEN}:${WHITE}$HTTP${NC}" 
 
     else
